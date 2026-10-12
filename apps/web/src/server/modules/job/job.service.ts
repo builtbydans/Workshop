@@ -168,10 +168,7 @@ const quoteLead = async (id: string, data: QuoteLeadDto) => {
   return updatedLead;
 };
 
-const markLeadAsLost = async (
-  id: string,
-  options?: { reason?: string },
-) => {
+const markLeadAsLost = async (id: string) => {
   const lead = await jobRepository.getLeadById(id);
 
   if (!lead) {
@@ -185,20 +182,7 @@ const markLeadAsLost = async (
   validateStatusTransition(lead.status, JOB_STATUS.LOST);
 
   const updatedLead = await jobRepository.markLeadAsLost(id);
-
-  if (!updatedLead) {
-    throw new AppError(
-      "Lead could not be marked as lost — status may have changed",
-      409,
-      ERROR_CODES.INVALID_STATUS_TRANSITION,
-    );
-  }
-
-  await jobUpdateService.createWorkflowUpdate(
-    id,
-    JOB_STATUS.LOST,
-    options?.reason,
-  );
+  await jobUpdateService.createWorkflowUpdate(id, JOB_STATUS.LOST);
 
   return updatedLead;
 };
@@ -210,28 +194,9 @@ const acceptQuote = async (id: string) => {
     throw new AppError("Lead not found", 404);
   }
 
-  if (lead.status === JOB_STATUS.AWAITING_DEPOSIT) {
-    return lead;
-  }
-
   validateStatusTransition(lead.status, JOB_STATUS.AWAITING_DEPOSIT);
 
   const updatedLead = await jobRepository.acceptQuote(id);
-
-  if (!updatedLead) {
-    const latest = await jobRepository.getLeadById(id);
-
-    if (latest?.status === JOB_STATUS.AWAITING_DEPOSIT) {
-      return latest;
-    }
-
-    throw new AppError(
-      "Quote could not be accepted — status may have changed",
-      409,
-      ERROR_CODES.INVALID_STATUS_TRANSITION,
-    );
-  }
-
   await jobUpdateService.createWorkflowUpdate(id, JOB_STATUS.AWAITING_DEPOSIT);
 
   return updatedLead;

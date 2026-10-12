@@ -16,11 +16,8 @@ const quoteLead = async (id: string, data: QuoteLeadDto) => {
   return await jobService.quoteLead(id, data);
 };
 
-const markLeadAsLost = async (
-  id: string,
-  options?: { reason?: string },
-) => {
-  return await jobService.markLeadAsLost(id, options);
+const markLeadAsLost = async (id: string) => {
+  return await jobService.markLeadAsLost(id);
 };
 
 const acceptQuote = async (id: string) => {

@@ -11,7 +11,6 @@ import {
 import { formatRegistration } from "@/utils/formatRegistration";
 
 import MarkLeadLostButton from "./MarkLeadLostButton";
-import { CopyCustomerQuoteLinkButton } from "./CopyCustomerQuoteLinkButton";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -38,15 +37,9 @@ export const LeadDetailsCard = ({ lead }: LeadDetailsCardProps) => {
           </Link>
         </Button>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <CopyCustomerQuoteLinkButton
-            enabled={lead.status === "QUOTED" && lead.quoted_cost != null}
-            leadId={lead.id}
-          />
-          {["LEAD", "QUOTED"].includes(lead.status) && (
-            <MarkLeadLostButton leadId={lead.id} />
-          )}
-        </div>
+        {["LEAD", "QUOTED"].includes(lead.status) && (
+          <MarkLeadLostButton leadId={lead.id} />
+        )}
       </div>
 
       <Card>

@@ -52,6 +52,23 @@ export function SiteHeader({ user }: { user: NavUserData | null }) {
               <ExternalLink />
             </a>
           </Button>
+          <Button asChild size="sm" variant="outline" className="hidden sm:inline-flex">
+            <a href="/demo/customer" rel="noopener noreferrer" target="_blank">
+              Customer Portal
+              <ExternalLink data-icon="inline-end" />
+            </a>
+          </Button>
+          <Button
+            asChild
+            size="icon-sm"
+            variant="outline"
+            className="sm:hidden"
+            aria-label="Customer Portal"
+          >
+            <a href="/demo/customer" rel="noopener noreferrer" target="_blank">
+              <ExternalLink />
+            </a>
+          </Button>
           <button
             type="button"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
