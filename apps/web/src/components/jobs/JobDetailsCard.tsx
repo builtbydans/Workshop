@@ -47,6 +47,8 @@ interface JobDetailsProps {
   job: JobSummaryDto;
   technicians?: EmployeeDto[];
   viewerRole?: EmployeeRole;
+  /** When true, omit outer page padding (host page already provides layout). */
+  embedded?: boolean;
   onTransition?: (
     jobId: string,
     nextStatus: JobStatus,
@@ -205,16 +207,23 @@ const StageDurationCard = ({ job }: { job: JobSummaryDto }) => {
 
 const TechnicianJobDetails = ({
   job,
+  embedded = false,
   onTransition,
   onRaise,
   onUpdated,
 }: {
   job: JobSummaryDto;
+  embedded?: boolean;
   onTransition?: JobDetailsProps["onTransition"];
   onRaise?: JobDetailsProps["onRaise"];
   onUpdated?: JobDetailsProps["onUpdated"];
 }) => (
-  <div className="space-y-6 px-4 py-5 sm:px-6 lg:px-10 xl:px-15">
+  <div
+    className={cn(
+      "space-y-6",
+      !embedded && "px-4 py-5 sm:px-6 lg:px-10 xl:px-15",
+    )}
+  >
     <Card className="overflow-hidden">
       <CardContent className="space-y-5 px-6 py-6">
         <div className="space-y-2">
@@ -327,6 +336,7 @@ const JobDetailsCard = ({
   job,
   technicians = [],
   viewerRole,
+  embedded = false,
   onTransition,
   onRaise,
   onUpdated,
@@ -334,6 +344,7 @@ const JobDetailsCard = ({
   if (viewerRole === "TECHNICIAN") {
     return (
       <TechnicianJobDetails
+        embedded={embedded}
         job={job}
         onRaise={onRaise}
         onTransition={onTransition}

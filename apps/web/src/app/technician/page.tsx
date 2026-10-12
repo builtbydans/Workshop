@@ -113,7 +113,7 @@ const TechnicianFloorPage = () => {
             <LoaderCircle className="size-6 animate-spin" />
           </div>
         ) : selectedJob ? (
-          <div className="space-y-2">
+          <div className="space-y-4">
             <Button
               onClick={() => setSelectedJob(null)}
               type="button"
@@ -121,6 +121,17 @@ const TechnicianFloorPage = () => {
             >
               Back to my jobs
             </Button>
+            <JobDetailsCard
+              embedded
+              job={selectedJob}
+              onRaise={raiseWorkshopJob}
+              onTransition={async (jobId, status, note) => {
+                const updated = await transitionWorkshopJob(jobId, status, note);
+                applyJobUpdate(updated);
+              }}
+              onUpdated={applyJobUpdate}
+              viewerRole="TECHNICIAN"
+            />
           </div>
         ) : (
           <div className="space-y-4">
@@ -165,19 +176,6 @@ const TechnicianFloorPage = () => {
           </div>
         )}
       </div>
-
-      {selectedJob && !loadingJob && (
-        <JobDetailsCard
-          job={selectedJob}
-          onRaise={raiseWorkshopJob}
-          onTransition={async (jobId, status, note) => {
-            const updated = await transitionWorkshopJob(jobId, status, note);
-            applyJobUpdate(updated);
-          }}
-          onUpdated={applyJobUpdate}
-          viewerRole="TECHNICIAN"
-        />
-      )}
     </div>
   );
 };

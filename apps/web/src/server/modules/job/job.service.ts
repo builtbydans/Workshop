@@ -397,10 +397,6 @@ const transitionJob = async (id: string, command: TransitionJobDto) => {
     command.note,
   );
 
-  if (isManagerRole(command.actorRole)) {
-    await jobRaiseService.resolveOpenRaiseForJob(id, command.actorEmployeeId);
-  }
-
   await auditRepository.createAuditLog({
     entity_type: "job",
     entity_id: id,

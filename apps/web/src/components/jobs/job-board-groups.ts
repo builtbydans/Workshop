@@ -176,7 +176,7 @@ function groupByOperationalStatus(jobs: JobSummaryDto[]): JobBoardSection[] {
   return [
     {
       id: "today",
-      title: "Today's Jobs",
+      title: "Active Workshop Jobs",
       description:
         "In progress through ready for collection (status grouping — no booking date stored)",
       jobs: todayJobs.sort(byCreatedAsc),
@@ -184,7 +184,7 @@ function groupByOperationalStatus(jobs: JobSummaryDto[]): JobBoardSection[] {
     },
     {
       id: "outstanding",
-      title: "In Progress & Outstanding",
+      title: "Waiting & Outstanding",
       description:
         "Awaiting deposit or parts (status grouping — no booking date stored)",
       jobs: outstandingJobs.sort(byCreatedAsc),
@@ -192,7 +192,7 @@ function groupByOperationalStatus(jobs: JobSummaryDto[]): JobBoardSection[] {
     },
     {
       id: "upcoming",
-      title: "Upcoming Bookings",
+      title: "Booked — Awaiting Arrival",
       description:
         "Booked jobs awaiting arrival (no scheduled drop-off date stored)",
       jobs: upcomingJobs.sort(byCreatedAsc),

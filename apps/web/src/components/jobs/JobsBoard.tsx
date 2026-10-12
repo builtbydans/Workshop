@@ -179,7 +179,7 @@ export function JobsBoard({ jobs }: JobsBoardProps) {
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-3">
-        <SummaryCounter label="Today's jobs" value={counters.todaysJobs} />
+        <SummaryCounter label="Active jobs" value={counters.todaysJobs} />
         <SummaryCounter label="In progress" value={counters.inProgress} />
         <SummaryCounter
           label="Needs attention"

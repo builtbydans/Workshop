@@ -297,7 +297,7 @@ const Dashboard = async () => {
         <RecentActivity activity={stats.recentActivity} />
       </section>
 
-      <JobsByStatus stats={stats} />
+      {/* <JobsByStatus stats={stats} /> */}
     </main>
   );
 };
