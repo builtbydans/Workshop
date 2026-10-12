@@ -34,7 +34,7 @@ supabase start
 supabase db reset
 ```
 
-Copy the local URL and keys from `supabase start` output into `client/.env.local`:
+Copy the local URL and keys from `supabase start` output into `apps/web/.env.local`:
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
@@ -46,7 +46,7 @@ SUPABASE_SECRET_KEY=<service role key from supabase start>
 Start the app:
 
 ```bash
-cd client
+cd apps/web
 npm run dev
 ```
 
