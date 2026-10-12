@@ -1,6 +1,6 @@
 # Workshop
 
-> A modern Garage & Workshop Management System built with Next.js, Express, TypeScript and Supabase.
+> A modern Garage & Workshop Management System built with Next.js, TypeScript and Supabase.
 
 Workshop is a full-stack web application designed to model the day-to-day operations of an independent vehicle workshop. Rather than focusing solely on CRUD operations, the project aims to capture real business workflows such as customer enquiries, quoting, job management and workshop progression.
 
@@ -48,8 +48,8 @@ Rather than creating isolated CRUD pages, the aim is to model how an actual gara
 
 ## Backend
 
-- Node.js
-- Express
+- Next.js Route Handlers (`/api/*`)
+- Domain services and repositories under `apps/web/src/server/`
 - TypeScript
 
 ## Database
@@ -61,7 +61,7 @@ Rather than creating isolated CRUD pages, the aim is to model how an actual gara
 - Vercel (Next.js UI + API Route Handlers)
 - Supabase
 
-The original Express API is preserved under [`archive/express-server/`](./archive/express-server/) for reference.
+The original Express API (previously hosted on Railway) is preserved under [`archive/express-server/`](./archive/express-server/) for reference.
 
 ---
 
@@ -222,20 +222,23 @@ Jobs include an activity timeline to display important workflow events and progr
 # Folder Structure
 
 ```
-client/
-    app/
+apps/
+  web/                # Next.js full-stack app (@workshop/web)
+    src/
+      app/
         api/          # Next.js Route Handlers
-    components/
-    services/
-    server/           # Domain layer (services, repositories, schemas)
-    types/
-    utils/
+      components/
+      services/
+      server/         # Domain layer (services, repositories, schemas)
+      lib/
+      types/
 
 archive/
-    express-server/   # Frozen Express API (interview / history)
+  express-server/     # Frozen Express API (interview / history)
 
 supabase/
-    migrations/
+  migrations/
+  seed.sql
 ```
 
 ---
@@ -287,8 +290,8 @@ These include:
 - Modular feature structure
 - Shared TypeScript DTOs
 - Consistent API responses
-- Separation between frontend and backend deployments
-- Later consolidation onto Vercel Route Handlers while preserving the Express implementation in `archive/`
+- Full-stack deployment on Vercel (UI and API Route Handlers together)
+- Earlier Express API preserved in `archive/` after consolidation onto Route Handlers
 
 ---
 
@@ -449,22 +452,25 @@ Future development will focus less on adding CRUD pages and more on improving op
 ## App (UI + API)
 
 ```bash
-cd client
+cd apps/web
 npm install
 npm run dev
 ```
 
 The API is available under `/api/*` on the same Next.js process (default `http://localhost:3000`).
 
-Copy `client/.env.example` to `client/.env.local` and fill in Supabase values, including the server-only `SUPABASE_URL` and `SUPABASE_SECRET_KEY`.
+Copy `apps/web/.env.example` to `apps/web/.env.local` and fill in Supabase values, including the server-only `SUPABASE_URL` and `SUPABASE_SECRET_KEY`.
 
-Reset demo data locally with `supabase db reset` (see [`supabase/README.md`](./supabase/README.md)).
+Reset demo data locally with `supabase db reset` from the repo root (see [`supabase/README.md`](./supabase/README.md)).
 
-## Tests
+## Tests and build
 
 ```bash
-cd client
+cd apps/web
 npm test
+npm run lint
+npx tsc --noEmit
+npm run build
 ```
 
 ---
