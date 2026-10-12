@@ -2,7 +2,11 @@ import {
   DashboardJobDto,
   DashboardStatsDto,
 } from "../../types/dashboard.types";
-import { JOB_STATUS, JobStatus } from "../../constants/job-status";
+import {
+  JOB_STATUS,
+  TODAY_JOB_STATUSES,
+  JobStatus,
+} from "../../constants/job-status";
 
 import supabase from "../../config/db/supabase";
 
@@ -26,17 +30,33 @@ const DASHBOARD_STATUSES: JobStatus[] = [
   JOB_STATUS.COMPLETED,
 ];
 
-const getTodayRange = () => {
+/** Monday 00:00 → next Monday 00:00 (local), matching ISO week boundaries. */
+const getCurrentWeekRange = () => {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
 
+  const day = start.getDay(); // 0 Sun … 6 Sat
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  start.setDate(start.getDate() + diffToMonday);
+
   const end = new Date(start);
-  end.setDate(end.getDate() + 1);
+  end.setDate(end.getDate() + 7);
 
   return {
     start: start.toISOString(),
     end: end.toISOString(),
   };
+};
+
+/** ISO-8601 week number (week starts Monday). */
+const getIsoWeekNumber = (date = new Date()) => {
+  const utc = new Date(
+    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
+  );
+  const dayNum = utc.getUTCDay() || 7;
+  utc.setUTCDate(utc.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(utc.getUTCFullYear(), 0, 1));
+  return Math.ceil(((utc.getTime() - yearStart.getTime()) / 86_400_000 + 1) / 7);
 };
 
 const firstRelation = <T>(relation: T | T[] | null | undefined): T | null => {
@@ -73,7 +93,8 @@ const toDashboardJob = (job: any): DashboardJobDto | null => {
 };
 
 const getDashboardStats = async (): Promise<DashboardStatsDto> => {
-  const { start, end } = getTodayRange();
+  const { start, end } = getCurrentWeekRange();
+  const weekNumber = getIsoWeekNumber();
 
   const [
     customersResult,
@@ -81,13 +102,12 @@ const getDashboardStats = async (): Promise<DashboardStatsDto> => {
     jobsResult,
     invoicesResult,
     leadsResult,
-    jobsTodayResult,
     vehiclesInWorkshopResult,
     readyForCollectionResult,
     jobsByStatusResult,
     todaysJobsResult,
     recentActivityResult,
-    completedTodayResult,
+    completedThisWeekResult,
   ] = await Promise.all([
     supabase.from("customers").select("*", {
       count: "exact",
@@ -113,13 +133,6 @@ const getDashboardStats = async (): Promise<DashboardStatsDto> => {
       .from("jobs")
       .select("*", { count: "exact", head: true })
       .is("deleted_at", null)
-      .in("status", WORKSHOP_STATUSES)
-      .gte("updated_at", start)
-      .lt("updated_at", end),
-    supabase
-      .from("jobs")
-      .select("*", { count: "exact", head: true })
-      .is("deleted_at", null)
       .in("status", WORKSHOP_STATUSES),
     supabase
       .from("jobs")
@@ -131,6 +144,7 @@ const getDashboardStats = async (): Promise<DashboardStatsDto> => {
       .select("status")
       .is("deleted_at", null)
       .in("status", DASHBOARD_STATUSES),
+    // Same status set as the Jobs board "Today's Jobs" section
     supabase
       .from("jobs")
       .select(
@@ -139,6 +153,7 @@ const getDashboardStats = async (): Promise<DashboardStatsDto> => {
         job_number,
         status,
         job_type,
+        created_at,
         updated_at,
         vehicles (
           registration,
@@ -152,13 +167,8 @@ const getDashboardStats = async (): Promise<DashboardStatsDto> => {
       `,
       )
       .is("deleted_at", null)
-      .in("status", [
-        ...WORKSHOP_STATUSES,
-        JOB_STATUS.READY_FOR_COLLECTION,
-        JOB_STATUS.INVOICED,
-      ])
-      .order("updated_at", { ascending: false })
-      .limit(5),
+      .in("status", TODAY_JOB_STATUSES)
+      .order("created_at", { ascending: true }),
     supabase
       .from("job_updates")
       .select(
@@ -188,13 +198,12 @@ const getDashboardStats = async (): Promise<DashboardStatsDto> => {
     jobsResult,
     invoicesResult,
     leadsResult,
-    jobsTodayResult,
     vehiclesInWorkshopResult,
     readyForCollectionResult,
     jobsByStatusResult,
     todaysJobsResult,
     recentActivityResult,
-    completedTodayResult,
+    completedThisWeekResult,
   ].find((result) => result.error);
 
   if (queryError?.error) {
@@ -214,10 +223,14 @@ const getDashboardStats = async (): Promise<DashboardStatsDto> => {
     jobsByStatus[status] = (jobsByStatus[status] ?? 0) + 1;
   }
 
-  const revenueToday = (completedTodayResult.data ?? []).reduce(
+  const revenueThisWeek = (completedThisWeekResult.data ?? []).reduce(
     (total, job) => total + Number(job.quoted_cost ?? 0),
     0,
   );
+
+  const todaysJobs = (todaysJobsResult.data ?? [])
+    .map(toDashboardJob)
+    .filter((job): job is DashboardJobDto => job !== null);
 
   return {
     customers: customersResult.count ?? 0,
@@ -225,14 +238,13 @@ const getDashboardStats = async (): Promise<DashboardStatsDto> => {
     jobs: jobsResult.count ?? 0,
     leads: leadsResult.count ?? 0,
     invoices: invoicesResult.count ?? 0,
-    jobsToday: jobsTodayResult.count ?? 0,
-    revenueToday,
+    jobsToday: todaysJobs.length,
+    revenueThisWeek,
+    weekNumber,
     vehiclesInWorkshop: vehiclesInWorkshopResult.count ?? 0,
     readyForCollection: readyForCollectionResult.count ?? 0,
     jobsByStatus,
-    todaysJobs: (todaysJobsResult.data ?? [])
-      .map(toDashboardJob)
-      .filter((job): job is DashboardJobDto => job !== null),
+    todaysJobs,
     recentActivity: (recentActivityResult.data ?? []).map((activity: any) => ({
       id: activity.id,
       message: activity.message,

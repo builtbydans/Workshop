@@ -1,24 +1,25 @@
 import { Wrench } from "lucide-react";
 
+import { JobsBoard } from "@/components/jobs/JobsBoard";
 import { getJobs } from "@/services/job.service.server";
-import { JobsTable } from "@/components/jobs/JobsTable";
 
 const JobsPage = async () => {
   const jobs = await getJobs();
 
   return (
-    <main className="space-y-6 py-6 px-12">
+    <main className="w-full space-y-6 px-4 py-6 sm:px-6 lg:px-12">
       <div>
         <div className="flex items-center gap-2">
           <Wrench className="size-6" />
           <h1 className="text-2xl font-semibold tracking-tight">Jobs</h1>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          Track active workshop jobs and their current progress.
+          Daily workshop operations board — active work, bookings, and recent
+          completions.
         </p>
       </div>
 
-      <JobsTable jobs={jobs} />
+      <JobsBoard jobs={jobs} />
     </main>
   );
 };

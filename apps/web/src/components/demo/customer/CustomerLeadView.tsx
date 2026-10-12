@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowLeft, Clock3 } from "lucide-react";
 
+import { CustomerBookingConfirmation } from "@/components/demo/customer/CustomerBookingConfirmation";
+import { CustomerBookingFlow } from "@/components/demo/customer/CustomerBookingFlow";
 import { CustomerQuoteActions } from "@/components/demo/customer/CustomerQuoteActions";
 import { formatJobStatus, JOB_STATUS } from "@/constants/job-status";
 import type { LeadSummaryDto } from "@/types/lead.types";
@@ -20,9 +22,13 @@ function money(value: number) {
 export function CustomerLeadView({ lead }: CustomerLeadViewProps) {
   const customer = lead.vehicles.customers;
   const vehicle = lead.vehicles;
+  const registration = formatRegistration(vehicle.registration);
+  const vehicleLabel = `${vehicle.make} ${vehicle.model}`;
+
   const isLead = lead.status === JOB_STATUS.LEAD;
   const isQuoted = lead.status === JOB_STATUS.QUOTED;
-  const isAccepted = lead.status === JOB_STATUS.AWAITING_DEPOSIT;
+  const isAwaitingDeposit = lead.status === JOB_STATUS.AWAITING_DEPOSIT;
+  const isBooked = lead.status === JOB_STATUS.BOOKED;
   const isLost = lead.status === JOB_STATUS.LOST;
 
   return (
@@ -86,10 +92,10 @@ export function CustomerLeadView({ lead }: CustomerLeadViewProps) {
                 Vehicle
               </dt>
               <dd className="mt-1 font-medium text-[var(--garage-offwhite)]">
-                {vehicle.make} {vehicle.model}
+                {vehicleLabel}
               </dd>
               <dd className="mt-2 inline-flex rounded-md border border-[var(--garage-line)] bg-[color-mix(in_srgb,var(--garage-steel)_70%,black)] px-3 py-1.5 font-mono text-sm tracking-wider text-[var(--garage-offwhite)]">
-                {formatRegistration(vehicle.registration)}
+                {registration}
               </dd>
             </div>
             <div>
@@ -155,25 +161,32 @@ export function CustomerLeadView({ lead }: CustomerLeadViewProps) {
                   Your quotation is ready
                 </h2>
                 <p className="text-sm leading-relaxed text-[var(--garage-ink-muted)]">
-                  Please review the details above and let us know whether you
-                  would like to proceed. Accepting will move your enquiry to
-                  awaiting deposit — no payment is taken here.
+                  Please review the details above. Accepting continues to a
+                  simulated deposit and drop-off booking. Declining marks the
+                  enquiry as lost with no checkout.
                 </p>
               </div>
               <CustomerQuoteActions leadId={lead.id} />
             </div>
           ) : null}
 
-          {isAccepted ? (
-            <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-[var(--garage-offwhite)]">
-                Quotation accepted
-              </h2>
-              <p className="text-sm leading-relaxed text-[var(--garage-ink-muted)]">
-                This quotation has already been accepted and is awaiting
-                deposit. No further action is needed in this simulation.
-              </p>
-            </div>
+          {isAwaitingDeposit ? (
+            <CustomerBookingFlow
+              customerFirstName={customer.first_name}
+              leadId={lead.id}
+              quotedCost={lead.quoted_cost}
+            />
+          ) : null}
+
+          {isBooked ? (
+            <CustomerBookingConfirmation
+              customerFirstName={customer.first_name}
+              jobNumber={lead.job_number}
+              leadId={lead.id}
+              quotedCost={lead.quoted_cost}
+              registration={registration}
+              vehicleLabel={vehicleLabel}
+            />
           ) : null}
 
           {isLost ? (
@@ -182,13 +195,17 @@ export function CustomerLeadView({ lead }: CustomerLeadViewProps) {
                 Quotation declined
               </h2>
               <p className="text-sm leading-relaxed text-[var(--garage-ink-muted)]">
-                This enquiry was marked as lost. Contact the workshop if you
-                would like a fresh quotation.
+                This enquiry was marked as lost. No deposit or booking steps
+                apply. Contact the workshop if you would like a fresh quotation.
               </p>
             </div>
           ) : null}
 
-          {!isLead && !isQuoted && !isAccepted && !isLost ? (
+          {!isLead &&
+          !isQuoted &&
+          !isAwaitingDeposit &&
+          !isBooked &&
+          !isLost ? (
             <div className="space-y-2">
               <h2 className="text-xl font-semibold text-[var(--garage-offwhite)]">
                 Enquiry updated

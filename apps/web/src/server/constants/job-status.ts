@@ -50,6 +50,14 @@ export const ACTIVE_JOB_STATUSES: JobStatus[] = [
   JOB_STATUS.COMPLETED,
 ];
 
+/** Active floor / collection work shown as "Today's Jobs" on the ops board. */
+export const TODAY_JOB_STATUSES: JobStatus[] = [
+  JOB_STATUS.IN_PROGRESS,
+  JOB_STATUS.AWAITING_REVIEW,
+  JOB_STATUS.FINAL_INSPECTION,
+  JOB_STATUS.READY_FOR_COLLECTION,
+];
+
 export const JOB_TRANSITIONS: Partial<Record<JobStatus, readonly JobStatus[]>> =
   {
     [JOB_STATUS.LEAD]: [JOB_STATUS.QUOTED, JOB_STATUS.LOST],

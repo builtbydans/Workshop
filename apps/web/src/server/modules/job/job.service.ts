@@ -61,6 +61,21 @@ const validateWorkshopTransition = (
   }
 };
 
+const omitTechnicianFinancialFields = (job: any) => {
+  const {
+    quoted_cost: _quotedCost,
+    actual_cost: _actualCost,
+    estimated_cost: _estimatedCost,
+    ...safeJob
+  } = job;
+
+  return {
+    ...safeJob,
+    quoted_cost: null,
+    actual_cost: null,
+  };
+};
+
 const getJobs = async (role?: ActorRole, employeeId?: string) => {
   const assignedTechnicianId =
     role === "TECHNICIAN" ? employeeId : undefined;
@@ -70,13 +85,21 @@ const getJobs = async (role?: ActorRole, employeeId?: string) => {
     jobs.map((job: { id: string }) => job.id),
   );
 
-  return jobs.map((job: any) => ({
-    ...job,
-    openRaise: raisesByJobId[job.id] ?? null,
-    canRaiseToManager:
-      role === "TECHNICIAN" &&
-      jobRaiseService.canTechnicianRaise(job, employeeId),
-  }));
+  return jobs.map((job: any) => {
+    const summary = {
+      ...job,
+      openRaise: raisesByJobId[job.id] ?? null,
+      canRaiseToManager:
+        role === "TECHNICIAN" &&
+        jobRaiseService.canTechnicianRaise(job, employeeId),
+    };
+
+    if (role === "TECHNICIAN") {
+      return omitTechnicianFinancialFields(summary);
+    }
+
+    return summary;
+  });
 };
 
 const getJobById = async (
@@ -97,23 +120,29 @@ const getJobById = async (
     throw new AppError("Job not found", 404, ERROR_CODES.NOT_FOUND);
   }
 
+  const isTechnician = role === "TECHNICIAN";
   const canManageInvoice = role === "MANAGER" || role === "ADMIN";
   const [updates, openRaise, workItems, invoice] = await Promise.all([
     jobUpdateService.getJobUpdatesByJobId(id),
     jobRaiseService.getOpenRaiseForJob(id),
-    workItemService.getWorkItemsForJob(
-      id,
-      workItemService.canEditWorkItems(job.status as JobStatus),
-    ),
+    isTechnician
+      ? Promise.resolve({ items: [], costs: null })
+      : workItemService.getWorkItemsForJob(
+          id,
+          workItemService.canEditWorkItems(job.status as JobStatus),
+        ),
     canManageInvoice
       ? invoiceService.getInvoiceByJobId(id, role)
       : Promise.resolve(null),
   ]);
   const invoicePaid = invoiceService.isInvoicePaid(invoice);
+  const visibleUpdates = isTechnician
+    ? updates.filter((update: { kind?: string }) => update.kind !== "BILLING")
+    : updates;
 
-  return {
+  const detail = {
     ...job,
-    updates,
+    updates: visibleUpdates,
     openRaise,
     workItems: workItems.items,
     costs: workItems.costs,
@@ -135,6 +164,21 @@ const getJobById = async (
         action.targetStatus !== JOB_STATUS.COMPLETED || invoicePaid,
     ),
   };
+
+  if (isTechnician) {
+    return omitTechnicianFinancialFields({
+      ...detail,
+      workItems: [],
+      costs: null,
+      invoice: null,
+      invoiceConfirmed: false,
+      invoicePaid: false,
+      canGenerateInvoice: false,
+      canConfirmInvoice: false,
+    });
+  }
+
+  return detail;
 };
 
 const getLeads = async () => {

@@ -1,6 +1,8 @@
 import supabase from "../../../config/db/supabase";
 import { AppError } from "../../../errors/AppError";
 
+const OUTSTANDING_STATUSES = ["OPEN", "ACKNOWLEDGED"] as const;
+
 const RAISE_SELECT = `
   id,
   job_id,
@@ -31,11 +33,13 @@ const getOpenRaiseByJobId = async (jobId: string) => {
     .from("job_raises")
     .select(RAISE_SELECT)
     .eq("job_id", jobId)
-    .eq("status", "OPEN")
+    .in("status", [...OUTSTANDING_STATUSES])
+    .order("updated_at", { ascending: false })
     .order("created_at", {
       referencedTable: "job_raise_notes",
       ascending: true,
     })
+    .limit(1)
     .maybeSingle();
 
   if (error) {
@@ -54,7 +58,7 @@ const getOpenRaisesByJobIds = async (jobIds: string[]) => {
     .from("job_raises")
     .select(RAISE_SELECT)
     .in("job_id", jobIds)
-    .eq("status", "OPEN")
+    .in("status", [...OUTSTANDING_STATUSES])
     .order("created_at", {
       referencedTable: "job_raise_notes",
       ascending: true,
@@ -64,7 +68,21 @@ const getOpenRaisesByJobIds = async (jobIds: string[]) => {
     throw new AppError(error.message, 500);
   }
 
-  return data ?? [];
+  const raises = data ?? [];
+  const latestByJobId = new Map<string, (typeof raises)[number]>();
+
+  for (const raise of raises) {
+    const existing = latestByJobId.get(raise.job_id);
+
+    if (
+      !existing ||
+      raise.updated_at.localeCompare(existing.updated_at) > 0
+    ) {
+      latestByJobId.set(raise.job_id, raise);
+    }
+  }
+
+  return [...latestByJobId.values()];
 };
 
 const getRaiseById = async (id: string) => {
@@ -95,6 +113,7 @@ const getOpenRaisesForDashboard = async () => {
       status,
       created_at,
       updated_at,
+      acknowledged_at,
       raised_by:employees!raised_by_employee_id (
         id,
         first_name,
@@ -103,7 +122,12 @@ const getOpenRaisesForDashboard = async () => {
       notes:job_raise_notes (
         id,
         body,
-        created_at
+        created_at,
+        employee:employees!employee_id (
+          id,
+          first_name,
+          last_name
+        )
       ),
       jobs!inner (
         id,
@@ -118,15 +142,33 @@ const getOpenRaisesForDashboard = async () => {
       )
     `,
     )
-    .eq("status", "OPEN")
+    .in("status", [...OUTSTANDING_STATUSES])
     .is("jobs.deleted_at", null)
-    .order("updated_at", { ascending: false });
+    .order("updated_at", { ascending: false })
+    .order("created_at", {
+      referencedTable: "job_raise_notes",
+      ascending: true,
+    });
 
   if (error) {
     throw new AppError(error.message, 500);
   }
 
   return data ?? [];
+};
+
+const countOutstandingRaises = async () => {
+  const { count, error } = await supabase
+    .from("job_raises")
+    .select("id, jobs!inner(deleted_at)", { count: "exact", head: true })
+    .in("status", [...OUTSTANDING_STATUSES])
+    .is("jobs.deleted_at", null);
+
+  if (error) {
+    throw new AppError(error.message, 500);
+  }
+
+  return count ?? 0;
 };
 
 const createRaise = async (jobId: string, employeeId: string) => {
@@ -218,11 +260,22 @@ const resolveRaise = async (raiseId: string, employeeId?: string) => {
       updated_at: now,
     })
     .eq("id", raiseId)
-    .eq("status", "OPEN");
+    .in("status", [...OUTSTANDING_STATUSES]);
 
   if (error) {
     throw new AppError(error.message, 500);
   }
 };
 
-export { getOpenRaiseByJobId, getOpenRaisesByJobIds, getRaiseById, getOpenRaisesForDashboard, createRaise, addNote, touchRaise, acknowledgeRaise, resolveRaise };
+export {
+  getOpenRaiseByJobId,
+  getOpenRaisesByJobIds,
+  getRaiseById,
+  getOpenRaisesForDashboard,
+  countOutstandingRaises,
+  createRaise,
+  addNote,
+  touchRaise,
+  acknowledgeRaise,
+  resolveRaise,
+};

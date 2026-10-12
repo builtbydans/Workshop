@@ -4,10 +4,10 @@ import {
   CalendarClock,
   CarFront,
   ClipboardList,
-  MessageSquareWarning,
   PackageCheck,
 } from "lucide-react";
 
+import { NeedsAttention } from "@/components/dashboard/NeedsAttention";
 import StatusBadge from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,7 +31,6 @@ import { unstable_rethrow } from "next/navigation";
 import {
   DashboardActivityDto,
   DashboardJobDto,
-  DashboardRaiseDto,
   WorkshopDashboardDto,
 } from "@/types/dashboard.types";
 import { formatRelativeDate } from "@/utils/date";
@@ -59,9 +58,16 @@ type KpiCardProps = {
   value: string | number;
   description: string;
   icon: React.ComponentType<{ className?: string }>;
+  badge?: string;
 };
 
-const KpiCard = ({ title, value, description, icon: Icon }: KpiCardProps) => (
+const KpiCard = ({
+  title,
+  value,
+  description,
+  icon: Icon,
+  badge,
+}: KpiCardProps) => (
   <Card className="bg-linear-to-t from-primary/5 to-card shadow-xs">
     <CardHeader className="flex flex-row items-start justify-between gap-4">
       <div>
@@ -70,68 +76,19 @@ const KpiCard = ({ title, value, description, icon: Icon }: KpiCardProps) => (
           {value}
         </CardTitle>
       </div>
-      <div className="rounded-md border border-primary/15 bg-primary/10 p-2 text-primary">
-        <Icon className="size-4" />
+      <div className="flex flex-col items-end gap-2">
+        {badge ? (
+          <span className="rounded-md border bg-background px-2 py-0.5 text-xs font-medium tabular-nums text-muted-foreground">
+            {badge}
+          </span>
+        ) : null}
+        <div className="rounded-md border border-primary/15 bg-primary/10 p-2 text-primary">
+          <Icon className="size-4" />
+        </div>
       </div>
     </CardHeader>
     <CardContent>
       <p className="text-sm text-muted-foreground">{description}</p>
-    </CardContent>
-  </Card>
-);
-
-const NeedsAttention = ({ raises }: { raises: DashboardRaiseDto[] }) => (
-  <Card className={raises.length > 0 ? "border-amber-300 dark:border-amber-800" : undefined}>
-    <CardHeader className="flex flex-row items-center justify-between gap-4">
-      <div>
-        <CardTitle className="flex items-center gap-2">
-          <MessageSquareWarning className="size-4" />
-          Needs attention
-        </CardTitle>
-        <CardDescription>
-          Technician raises that have not been acknowledged
-        </CardDescription>
-      </div>
-      <span className="rounded-md bg-muted px-2 py-1 text-sm font-semibold tabular-nums">
-        {raises.length}
-      </span>
-    </CardHeader>
-    <CardContent>
-      {raises.length === 0 ? (
-        <div className="flex min-h-32 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
-          No open raises right now.
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {raises.map((raise) => (
-            <Link
-              className="block rounded-lg border p-4 transition-colors hover:border-primary"
-              href={`/jobs/${raise.job_id}`}
-              key={raise.id}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-medium">
-                    {raise.raised_by.first_name} {raise.raised_by.last_name}{" "}
-                    has left a note
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {raise.job_number}
-                    {raise.vehicles
-                      ? ` · ${formatRegistration(raise.vehicles.registration)}`
-                      : ""}
-                  </p>
-                  <p className="mt-2 line-clamp-2 text-sm">{raise.latest_note}</p>
-                </div>
-                <StatusBadge status={raise.job_status as JobStatus} />
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                {formatRelativeDate(raise.updated_at)}
-              </p>
-            </Link>
-          ))}
-        </div>
-      )}
     </CardContent>
   </Card>
 );
@@ -141,7 +98,9 @@ const TodaysJobs = ({ jobs }: { jobs: DashboardJobDto[] }) => (
     <CardHeader className="flex flex-row items-center justify-between gap-4">
       <div>
         <CardTitle>Today&apos;s Jobs</CardTitle>
-        <CardDescription>Live workshop work queue</CardDescription>
+        <CardDescription>
+          In progress through ready for collection ({jobs.length})
+        </CardDescription>
       </div>
       <Button asChild size="sm" variant="outline">
         <Link href="/jobs">View All Jobs</Link>
@@ -157,6 +116,7 @@ const TodaysJobs = ({ jobs }: { jobs: DashboardJobDto[] }) => (
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40">
+                <TableHead>Job</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Vehicle Registration</TableHead>
                 <TableHead>Vehicle Make/Model</TableHead>
@@ -166,7 +126,15 @@ const TodaysJobs = ({ jobs }: { jobs: DashboardJobDto[] }) => (
             </TableHeader>
             <TableBody>
               {jobs.map((job) => (
-                <TableRow key={job.id}>
+                <TableRow key={job.id} className="cursor-pointer">
+                  <TableCell>
+                    <Link
+                      className="font-medium tabular-nums hover:underline"
+                      href={`/jobs/${job.id}`}
+                    >
+                      {job.job_number}
+                    </Link>
+                  </TableCell>
                   <TableCell>
                     {job.vehicles.customers.first_name}{" "}
                     {job.vehicles.customers.last_name}
@@ -289,22 +257,24 @@ const Dashboard = async () => {
           </h1>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          Today&apos;s workshop load, collections, revenue, and recent movement.
+          Today&apos;s workshop load, collections, weekly revenue, and recent
+          movement.
         </p>
       </div>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard
-          description="Active workshop jobs updated today"
+          description="In progress through ready for collection"
           icon={CalendarClock}
           title="Jobs Today"
           value={stats.jobsToday}
         />
         <KpiCard
-          description="Completed jobs with recorded actual cost"
+          badge={`Week ${stats.weekNumber}`}
+          description="Completed jobs this week (Mon–Sun)"
           icon={Banknote}
-          title="Revenue Today"
-          value={currencyFormatter.format(stats.revenueToday)}
+          title="Weekly Revenue"
+          value={currencyFormatter.format(stats.revenueThisWeek)}
         />
         <KpiCard
           description="Booked through final inspection"

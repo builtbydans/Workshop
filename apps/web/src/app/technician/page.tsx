@@ -5,10 +5,7 @@ import { useRouter } from "next/navigation";
 import { LoaderCircle, LogOut, Wrench } from "lucide-react";
 import { toast } from "sonner";
 
-import ActivityTimeline from "@/components/jobs/ActivityTimeline";
-import JobActionPanel from "@/components/jobs/JobActionPanel";
-import JobRaisePanel from "@/components/jobs/JobRaisePanel";
-import WorkItemsPanel from "@/components/jobs/WorkItemsPanel";
+import JobDetailsCard from "@/components/jobs/JobDetailsCard";
 import StatusBadge from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,8 +20,6 @@ import {
   getWorkshopJobs,
   raiseWorkshopJob,
   transitionWorkshopJob,
-  createWorkshopWorkItem,
-  deleteWorkshopWorkItem,
 } from "@/services/workshop.api";
 import type { JobSummaryDto } from "@/types/job.types";
 import { formatRegistration } from "@/utils/formatRegistration";
@@ -72,6 +67,13 @@ const TechnicianFloorPage = () => {
     }
   };
 
+  const applyJobUpdate = (updated: JobSummaryDto) => {
+    setJobs((current) =>
+      current.map((job) => (job.id === updated.id ? updated : job)),
+    );
+    setSelectedJob(updated);
+  };
+
   const handleClockOut = () => {
     clearWorkshopSession();
     router.replace("/technician/login");
@@ -86,8 +88,8 @@ const TechnicianFloorPage = () => {
   }
 
   return (
-    <div className="min-h-svh bg-muted p-4 md:p-8">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+    <div className="min-h-svh bg-muted">
+      <div className="flex w-full flex-col gap-6 px-4 py-5 sm:px-6 lg:px-10 xl:px-15">
         <header className="flex items-center justify-between rounded-2xl border bg-card px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -111,7 +113,7 @@ const TechnicianFloorPage = () => {
             <LoaderCircle className="size-6 animate-spin" />
           </div>
         ) : selectedJob ? (
-          <div className="space-y-4">
+          <div className="space-y-2">
             <Button
               onClick={() => setSelectedJob(null)}
               type="button"
@@ -119,63 +121,6 @@ const TechnicianFloorPage = () => {
             >
               Back to my jobs
             </Button>
-            <Card>
-              <CardContent className="space-y-3 p-6">
-                <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge status={selectedJob.status} />
-                  {selectedJob.openRaise && (
-                    <span className="text-sm font-medium text-amber-700 dark:text-amber-400">
-                      Raised to manager
-                    </span>
-                  )}
-                </div>
-                <h1 className="text-2xl font-semibold">
-                  {selectedJob.job_number}
-                </h1>
-                <p className="text-muted-foreground">
-                  {formatRegistration(selectedJob.vehicles.registration)} ·{" "}
-                  {selectedJob.vehicles.make} {selectedJob.vehicles.model}
-                </p>
-                <p>{selectedJob.description || "No extra notes on this job."}</p>
-              </CardContent>
-            </Card>
-            <WorkItemsPanel
-              job={selectedJob}
-              onCreate={createWorkshopWorkItem}
-              onDelete={deleteWorkshopWorkItem}
-              onUpdated={(updated) => {
-                setJobs((current) =>
-                  current.map((job) => (job.id === updated.id ? updated : job)),
-                );
-                setSelectedJob(updated);
-              }}
-            />
-            <JobActionPanel
-              job={selectedJob}
-              onTransition={async (jobId, status, note) => {
-                const updated = await transitionWorkshopJob(
-                  jobId,
-                  status,
-                  note,
-                );
-                setJobs((current) =>
-                  current.map((job) => (job.id === updated.id ? updated : job)),
-                );
-                setSelectedJob(updated);
-              }}
-            />
-            <JobRaisePanel
-              job={selectedJob}
-              onRaise={raiseWorkshopJob}
-              onUpdated={(updated) => {
-                setJobs((current) =>
-                  current.map((job) => (job.id === updated.id ? updated : job)),
-                );
-                setSelectedJob(updated);
-              }}
-              variant="technician"
-            />
-            <ActivityTimeline job={selectedJob} />
           </div>
         ) : (
           <div className="space-y-4">
@@ -188,7 +133,7 @@ const TechnicianFloorPage = () => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-3">
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {jobs.map((job) => (
                   <button
                     className="rounded-2xl border bg-card p-5 text-left shadow-sm transition-colors hover:border-primary"
@@ -220,6 +165,19 @@ const TechnicianFloorPage = () => {
           </div>
         )}
       </div>
+
+      {selectedJob && !loadingJob && (
+        <JobDetailsCard
+          job={selectedJob}
+          onRaise={raiseWorkshopJob}
+          onTransition={async (jobId, status, note) => {
+            const updated = await transitionWorkshopJob(jobId, status, note);
+            applyJobUpdate(updated);
+          }}
+          onUpdated={applyJobUpdate}
+          viewerRole="TECHNICIAN"
+        />
+      )}
     </div>
   );
 };

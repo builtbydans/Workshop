@@ -27,6 +27,14 @@ export const WORKSHOP_STATUS_SEQUENCE = [
   JOB_STATUS.COMPLETED,
 ] as const;
 
+/** Active floor / collection work shown as "Today's Jobs" on the ops board. */
+export const TODAY_JOB_STATUSES = [
+  JOB_STATUS.IN_PROGRESS,
+  JOB_STATUS.AWAITING_REVIEW,
+  JOB_STATUS.FINAL_INSPECTION,
+  JOB_STATUS.READY_FOR_COLLECTION,
+] as const satisfies readonly JobStatus[];
+
 export const formatJobStatus = (status: JobStatus) =>
   status
     .toLowerCase()
