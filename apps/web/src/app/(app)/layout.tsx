@@ -2,7 +2,7 @@ import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { WorkInProgressBanner } from "@/components/work-in-progress-banner";
-import { createClient } from "@/lib/supabase/server";
+import { getServerAuth } from "@/lib/server-auth";
 import type { NavUserData } from "@/types/auth.types";
 
 export default async function AppLayout({
@@ -10,30 +10,22 @@ export default async function AppLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const auth = await getServerAuth();
 
   let navUser: NavUserData | null = null;
 
-  if (user) {
-    const { data: employee } = await supabase
-      .from("employees")
-      .select("first_name, last_name")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    const fullName = employee
-      ? `${employee.first_name} ${employee.last_name}`.trim()
-      : (user.email ?? "User");
+  if (auth) {
+    const fullName =
+      auth.firstName || auth.lastName
+        ? `${auth.firstName ?? ""} ${auth.lastName ?? ""}`.trim()
+        : auth.email || "User";
 
     navUser = {
-      firstName: employee?.first_name ?? fullName,
+      firstName: auth.firstName ?? fullName,
       fullName,
-      email: user.email ?? "",
+      email: auth.email,
       avatar: "",
+      role: auth.role,
     };
   }
 

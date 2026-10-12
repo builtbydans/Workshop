@@ -139,15 +139,39 @@ const JobRaisePanel = ({
     return null;
   }
 
+  const acknowledged =
+    raise?.status === "ACKNOWLEDGED" || Boolean(raise?.acknowledged_at);
+
   return (
-    <Card className={raise ? "border-amber-300 dark:border-amber-800" : undefined}>
+    <Card
+      className={
+        raise
+          ? "border-red-300 bg-red-50/70 dark:border-red-900 dark:bg-red-950/30"
+          : undefined
+      }
+    >
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MessageSquareWarning className="size-4" />
+        <CardTitle className="flex flex-wrap items-center gap-2">
+          <MessageSquareWarning
+            className={
+              raise ? "size-4 text-red-600 dark:text-red-400" : "size-4"
+            }
+          />
           {raise
             ? `${employeeName(raise.raised_by)} has left a note`
             : "Raise to manager"}
-          {raise && <Badge variant="outline">Needs manager</Badge>}
+          {raise && (
+            <Badge
+              className={
+                acknowledged
+                  ? undefined
+                  : "border-red-300 text-red-800 dark:border-red-800 dark:text-red-200"
+              }
+              variant="outline"
+            >
+              {acknowledged ? "Acknowledged" : "Needs manager"}
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -155,6 +179,9 @@ const JobRaisePanel = ({
           <>
             <p className="text-sm text-muted-foreground">
               This does not stop the job. A manager still needs to look at it.
+              {acknowledged && raise.acknowledged_at
+                ? ` Acknowledged ${formatRelativeDate(raise.acknowledged_at)}.`
+                : ""}
             </p>
             <RaiseThread raise={raise} />
           </>
@@ -224,13 +251,13 @@ const JobRaisePanel = ({
         {variant === "manager" && raise && (
           <div className="flex flex-wrap justify-end gap-2">
             <Button
-              disabled={pending}
+              disabled={pending || acknowledged}
               onClick={() => void handleAcknowledge()}
               type="button"
               variant="outline"
             >
               {pending && <LoaderCircle className="animate-spin" />}
-              Acknowledge
+              {acknowledged ? "Acknowledged" : "Acknowledge"}
             </Button>
             <Button
               disabled={pending}

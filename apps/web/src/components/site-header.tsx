@@ -6,15 +6,21 @@ import { ExternalLink, MoonIcon, SunIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { ManagerAttentionBell } from "@/components/manager-attention/ManagerAttentionBell";
 import type { NavUserData } from "@/types/auth.types";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 
 export function SiteHeader({ user }: { user: NavUserData | null }) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const canViewManagerAttention =
+    user?.role === "MANAGER" || user?.role === "ADMIN";
 
   const getPageTitle = (path: string) => {
     if (path === "/") return `Welcome back, ${user?.firstName}`;
+    if (path.startsWith("/alerts") || path.startsWith("/manager-attention")) {
+      return "Alerts";
+    }
 
     const firstSegment = path.match(/\/([^\/]+)/)?.[1];
 
@@ -35,6 +41,7 @@ export function SiteHeader({ user }: { user: NavUserData | null }) {
 
         <h1 className="text-base font-medium">{getPageTitle(pathname)}</h1>
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
+          {canViewManagerAttention && <ManagerAttentionBell />}
           <Button asChild size="sm" variant="outline" className="hidden sm:inline-flex">
             <a href="/demo/garage" rel="noopener noreferrer" target="_blank">
               Simulate Enquiry
@@ -49,6 +56,23 @@ export function SiteHeader({ user }: { user: NavUserData | null }) {
             aria-label="Simulate Enquiry"
           >
             <a href="/demo/garage" rel="noopener noreferrer" target="_blank">
+              <ExternalLink />
+            </a>
+          </Button>
+          <Button asChild size="sm" variant="outline" className="hidden sm:inline-flex">
+            <a href="/demo/customer" rel="noopener noreferrer" target="_blank">
+              Customer Portal
+              <ExternalLink data-icon="inline-end" />
+            </a>
+          </Button>
+          <Button
+            asChild
+            size="icon-sm"
+            variant="outline"
+            className="sm:hidden"
+            aria-label="Customer Portal"
+          >
+            <a href="/demo/customer" rel="noopener noreferrer" target="_blank">
               <ExternalLink />
             </a>
           </Button>

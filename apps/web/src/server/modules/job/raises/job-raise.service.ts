@@ -76,37 +76,75 @@ const getOpenRaisesByJobIds = async (
   );
 };
 
-const getOpenRaisesForDashboard = async (): Promise<DashboardRaiseDto[]> => {
-  const raises = await jobRaiseRepository.getOpenRaisesForDashboard();
-
-  return raises.map((raise: any) => {
-    const job = firstRelation(raise.jobs);
-    const vehicle = firstRelation(job?.vehicles);
-    const raisedBy = firstRelation(raise.raised_by);
-    const notes = [...(raise.notes ?? [])].sort(
+const toDashboardRaiseDto = (raise: any): DashboardRaiseDto => {
+  const job = firstRelation(raise.jobs);
+  const vehicle = firstRelation(job?.vehicles);
+  const raisedBy = firstRelation(raise.raised_by);
+  const notes: JobRaiseNoteDto[] = [...(raise.notes ?? [])]
+    .sort(
       (left: { created_at: string }, right: { created_at: string }) =>
         left.created_at.localeCompare(right.created_at),
-    );
-    const latest = notes[notes.length - 1];
+    )
+    .map((note: any) => ({
+      id: note.id,
+      body: note.body,
+      created_at: note.created_at,
+      employee: toEmployee(firstRelation(note.employee) ?? raisedBy),
+    }));
+  const latest = notes[notes.length - 1];
 
-    return {
-      id: raise.id,
-      job_id: raise.job_id,
-      job_number: job?.job_number ?? "Unknown job",
-      job_status: job?.status ?? "",
-      created_at: raise.created_at,
-      updated_at: raise.updated_at,
-      latest_note: latest?.body ?? "",
-      raised_by: toEmployee(raisedBy),
-      vehicles: vehicle
-        ? {
-            registration: vehicle.registration,
-            make: vehicle.make,
-            model: vehicle.model,
-          }
-        : null,
-    };
-  });
+  return {
+    id: raise.id,
+    job_id: raise.job_id,
+    job_number: job?.job_number ?? "Unknown job",
+    job_status: job?.status ?? "",
+    status: raise.status,
+    created_at: raise.created_at,
+    updated_at: raise.updated_at,
+    acknowledged_at: raise.acknowledged_at,
+    latest_note: latest?.body ?? "",
+    raised_by: toEmployee(raisedBy),
+    notes,
+    vehicles: vehicle
+      ? {
+          registration: vehicle.registration,
+          make: vehicle.make,
+          model: vehicle.model,
+        }
+      : null,
+  };
+};
+
+const getOpenRaisesForDashboard = async (): Promise<DashboardRaiseDto[]> => {
+  const raises = await jobRaiseRepository.getOpenRaisesForDashboard();
+  return raises.map(toDashboardRaiseDto);
+};
+
+const isManagerRole = (role?: ActorRole) =>
+  role === "MANAGER" || role === "ADMIN";
+
+const assertManagerCanViewRaises = (role?: ActorRole) => {
+  if (!isManagerRole(role)) {
+    throw new AppError(
+      "Only managers can view manager attention notifications",
+      403,
+      ERROR_CODES.FORBIDDEN,
+    );
+  }
+};
+
+const getOutstandingRaisesForManager = async (
+  role?: ActorRole,
+): Promise<DashboardRaiseDto[]> => {
+  assertManagerCanViewRaises(role);
+  return getOpenRaisesForDashboard();
+};
+
+const getOutstandingRaiseCountForManager = async (
+  role?: ActorRole,
+): Promise<number> => {
+  assertManagerCanViewRaises(role);
+  return jobRaiseRepository.countOutstandingRaises();
 };
 
 const canTechnicianRaise = (
@@ -202,7 +240,13 @@ const acknowledgeRaise = async (
   }
 
   if (raise.status !== "OPEN") {
-    throw new AppError("This raise is no longer open", 409, ERROR_CODES.VALIDATION_ERROR);
+    throw new AppError(
+      raise.status === "ACKNOWLEDGED"
+        ? "This raise has already been acknowledged"
+        : "This raise is no longer open",
+      409,
+      ERROR_CODES.VALIDATION_ERROR,
+    );
   }
 
   await jobRaiseRepository.acknowledgeRaise(raiseId, employeeId);
@@ -229,7 +273,7 @@ const resolveRaise = async (
     throw new AppError("Raise not found", 404, ERROR_CODES.NOT_FOUND);
   }
 
-  if (raise.status !== "OPEN") {
+  if (raise.status !== "OPEN" && raise.status !== "ACKNOWLEDGED") {
     throw new AppError("This raise is no longer open", 409, ERROR_CODES.VALIDATION_ERROR);
   }
 
@@ -247,4 +291,16 @@ const resolveOpenRaiseForJob = async (jobId: string, employeeId?: string) => {
   await jobRaiseRepository.resolveRaise(existing.id, employeeId);
 };
 
-export { canRaiseOnStatus, canTechnicianRaise, getOpenRaiseForJob, getOpenRaisesByJobIds, getOpenRaisesForDashboard, raiseToManager, acknowledgeRaise, resolveRaise, resolveOpenRaiseForJob };
+export {
+  canRaiseOnStatus,
+  canTechnicianRaise,
+  getOpenRaiseForJob,
+  getOpenRaisesByJobIds,
+  getOpenRaisesForDashboard,
+  getOutstandingRaisesForManager,
+  getOutstandingRaiseCountForManager,
+  raiseToManager,
+  acknowledgeRaise,
+  resolveRaise,
+  resolveOpenRaiseForJob,
+};

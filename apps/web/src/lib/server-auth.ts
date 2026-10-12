@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { redirect } from "next/navigation";
 
 import { LOGIN_PATH } from "@/config/api";
@@ -7,7 +8,8 @@ import { createClient } from "@/lib/supabase/server";
 import * as employeeRepository from "@/server/modules/employee/employee.repository";
 import type { AuthContext } from "@/server/types/auth.types";
 
-export async function getServerAuth(): Promise<AuthContext | null> {
+/** Deduped per RSC request so layout + page don't each hit Auth/DB. */
+export const getServerAuth = cache(async (): Promise<AuthContext | null> => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -24,12 +26,14 @@ export async function getServerAuth(): Promise<AuthContext | null> {
     userId: user.id,
     email: user.email ?? "",
     employeeId: employee?.id,
+    firstName: employee?.first_name,
+    lastName: employee?.last_name,
     role:
       role === "MANAGER" || role === "ADMIN" || role === "TECHNICIAN"
         ? role
         : undefined,
   };
-}
+});
 
 export async function requireServerAuth(): Promise<AuthContext> {
   const auth = await getServerAuth();

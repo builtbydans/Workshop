@@ -3,4 +3,6 @@ export interface AuthContext {
   email: string;
   role?: "MANAGER" | "ADMIN" | "TECHNICIAN";
   employeeId?: string;
+  firstName?: string;
+  lastName?: string;
 }

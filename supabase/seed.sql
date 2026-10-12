@@ -139,25 +139,21 @@ insert into public.jobs (
   ('a1000000-0000-4000-8000-000000000017', 'b1000000-0000-4000-8000-000000000019', 'JOB-2026-000017', 'Brakes', 'Rear caliper seized — caliper back-ordered', 'AWAITING_PARTS', 340.00, 85.00, now() - interval '5 days', 'e1000000-0000-4000-8000-000000000005', null, now() - interval '7 days', now() - interval '5 hours'),
   ('a1000000-0000-4000-8000-000000000018', 'b1000000-0000-4000-8000-000000000021', 'JOB-2026-000018', 'Electrical', 'Alternator replacement — part due Thursday', 'AWAITING_PARTS', 445.00, 110.00, now() - interval '4 days', 'e1000000-0000-4000-8000-000000000006', null, now() - interval '6 days', now() - interval '1 hour'),
 
-  -- In progress (active bays)
+  -- Today's board (keep lean — 5 jobs across active workshop statuses)
   ('a1000000-0000-4000-8000-000000000019', 'b1000000-0000-4000-8000-000000000006', 'JOB-2026-000019', 'Service', 'Major service and spark plugs — bay 4', 'IN_PROGRESS', 310.00, 80.00, now() - interval '5 days', 'e1000000-0000-4000-8000-000000000003', 145.00, now() - interval '6 days', now() - interval '20 minutes'),
   ('a1000000-0000-4000-8000-000000000020', 'b1000000-0000-4000-8000-000000000007', 'JOB-2026-000020', 'Clutch', 'Dual-mass flywheel and clutch kit — bay 2', 'IN_PROGRESS', 1240.00, 300.00, now() - interval '7 days', 'e1000000-0000-4000-8000-000000000004', 680.00, now() - interval '9 days', now() - interval '40 minutes'),
-  ('a1000000-0000-4000-8000-000000000021', 'b1000000-0000-4000-8000-000000000008', 'JOB-2026-000021', 'Brakes', 'Front and rear brake overhaul', 'IN_PROGRESS', 520.00, 130.00, now() - interval '4 days', 'e1000000-0000-4000-8000-000000000005', 290.00, now() - interval '5 days', now()),
-  ('a1000000-0000-4000-8000-000000000022', 'b1000000-0000-4000-8000-000000000031', 'JOB-2026-000022', 'Diagnostics', 'Turbo boost fault — live data logging', 'IN_PROGRESS', 180.00, 0.00, now() - interval '2 days', 'e1000000-0000-4000-8000-000000000006', 95.00, now() - interval '3 days', now() - interval '15 minutes'),
-
-  -- Awaiting manager review
   ('a1000000-0000-4000-8000-000000000023', 'b1000000-0000-4000-8000-000000000009', 'JOB-2026-000023', 'MOT', 'Pre-MOT inspection and remedial work', 'AWAITING_REVIEW', 275.00, 0.00, now() - interval '6 days', 'e1000000-0000-4000-8000-000000000005', 220.00, now() - interval '7 days', now() - interval '2 hours'),
-  ('a1000000-0000-4000-8000-000000000024', 'b1000000-0000-4000-8000-000000000020', 'JOB-2026-000024', 'Bodywork', 'Bumper scuff repair and blend', 'AWAITING_REVIEW', 395.00, 100.00, now() - interval '5 days', 'e1000000-0000-4000-8000-000000000003', 310.00, now() - interval '6 days', now() - interval '4 hours'),
-  ('a1000000-0000-4000-8000-000000000025', 'b1000000-0000-4000-8000-000000000026', 'JOB-2026-000025', 'Service', 'Full service with brake check', 'AWAITING_REVIEW', 245.00, 60.00, now() - interval '4 days', 'e1000000-0000-4000-8000-000000000004', 198.00, now() - interval '5 days', now() - interval '6 hours'),
-
-  -- Final inspection
   ('a1000000-0000-4000-8000-000000000026', 'b1000000-0000-4000-8000-000000000010', 'JOB-2026-000026', 'Tyres', 'Two tyres and alignment — road test pending', 'FINAL_INSPECTION', 240.00, 60.00, now() - interval '7 days', 'e1000000-0000-4000-8000-000000000004', 198.00, now() - interval '8 days', now() - interval '1 hour'),
-  ('a1000000-0000-4000-8000-000000000027', 'b1000000-0000-4000-8000-000000000011', 'JOB-2026-000027', 'Brakes', 'Rear brake service — final check', 'FINAL_INSPECTION', 205.00, 50.00, now() - interval '6 days', 'e1000000-0000-4000-8000-000000000006', 176.00, now() - interval '7 days', now() - interval '3 hours'),
-
-  -- Ready for collection
   ('a1000000-0000-4000-8000-000000000028', 'b1000000-0000-4000-8000-000000000012', 'JOB-2026-000028', 'Air conditioning', 'A/C regas and leak check — ready to collect', 'READY_FOR_COLLECTION', 165.00, 0.00, now() - interval '8 days', 'e1000000-0000-4000-8000-000000000005', 132.00, now() - interval '9 days', now() - interval '30 minutes'),
-  ('a1000000-0000-4000-8000-000000000029', 'b1000000-0000-4000-8000-000000000030', 'JOB-2026-000029', 'Battery', 'Battery replacement and charging system test', 'READY_FOR_COLLECTION', 145.00, 0.00, now() - interval '5 days', 'e1000000-0000-4000-8000-000000000003', 118.00, now() - interval '6 days', now() - interval '2 hours'),
-  ('a1000000-0000-4000-8000-000000000030', 'b1000000-0000-4000-8000-000000000032', 'JOB-2026-000030', 'Service', 'Interim service completed — awaiting pickup', 'READY_FOR_COLLECTION', 159.00, 40.00, now() - interval '4 days', 'e1000000-0000-4000-8000-000000000006', 134.00, now() - interval '5 days', now() - interval '50 minutes'),
+
+  -- Formerly active board jobs — completed to keep Today's Jobs at 5
+  ('a1000000-0000-4000-8000-000000000021', 'b1000000-0000-4000-8000-000000000008', 'JOB-2026-000021', 'Brakes', 'Front and rear brake overhaul', 'COMPLETED', 520.00, 130.00, now() - interval '4 days', 'e1000000-0000-4000-8000-000000000005', 290.00, now() - interval '5 days', now() - interval '1 day'),
+  ('a1000000-0000-4000-8000-000000000022', 'b1000000-0000-4000-8000-000000000031', 'JOB-2026-000022', 'Diagnostics', 'Turbo boost fault — live data logging', 'COMPLETED', 180.00, 0.00, now() - interval '2 days', 'e1000000-0000-4000-8000-000000000006', 95.00, now() - interval '3 days', now() - interval '2 days'),
+  ('a1000000-0000-4000-8000-000000000024', 'b1000000-0000-4000-8000-000000000020', 'JOB-2026-000024', 'Bodywork', 'Bumper scuff repair and blend', 'COMPLETED', 395.00, 100.00, now() - interval '5 days', 'e1000000-0000-4000-8000-000000000003', 310.00, now() - interval '6 days', now() - interval '3 days'),
+  ('a1000000-0000-4000-8000-000000000025', 'b1000000-0000-4000-8000-000000000026', 'JOB-2026-000025', 'Service', 'Full service with brake check', 'COMPLETED', 245.00, 60.00, now() - interval '4 days', 'e1000000-0000-4000-8000-000000000004', 198.00, now() - interval '5 days', now() - interval '2 days'),
+  ('a1000000-0000-4000-8000-000000000027', 'b1000000-0000-4000-8000-000000000011', 'JOB-2026-000027', 'Brakes', 'Rear brake service — final check', 'COMPLETED', 205.00, 50.00, now() - interval '6 days', 'e1000000-0000-4000-8000-000000000006', 176.00, now() - interval '7 days', now() - interval '4 days'),
+  ('a1000000-0000-4000-8000-000000000029', 'b1000000-0000-4000-8000-000000000030', 'JOB-2026-000029', 'Battery', 'Battery replacement and charging system test', 'COMPLETED', 145.00, 0.00, now() - interval '5 days', 'e1000000-0000-4000-8000-000000000003', 118.00, now() - interval '6 days', now() - interval '1 day'),
+  ('a1000000-0000-4000-8000-000000000030', 'b1000000-0000-4000-8000-000000000032', 'JOB-2026-000030', 'Service', 'Interim service completed — awaiting pickup', 'COMPLETED', 159.00, 40.00, now() - interval '4 days', 'e1000000-0000-4000-8000-000000000006', 134.00, now() - interval '5 days', now() - interval '12 hours'),
 
   -- Invoiced (awaiting payment)
   ('a1000000-0000-4000-8000-000000000031', 'b1000000-0000-4000-8000-000000000001', 'JOB-2026-000031', 'Service', 'Interim service — invoice sent', 'INVOICED', 149.00, 0.00, now() - interval '10 days', 'e1000000-0000-4000-8000-000000000003', 121.00, now() - interval '11 days', now() - interval '1 day'),
@@ -319,6 +315,21 @@ insert into public.invoice_lines (id, invoice_id, source_work_item_id, kind, ori
   ('02000000-0000-4000-8000-000000000004', '01000000-0000-4000-8000-000000000004', 'f1000000-0000-4000-8000-000000000014', 'PARTS', 'QUOTED', 'Rear pads and hardware', 1, 68.00, 68.00, 2),
   ('02000000-0000-4000-8000-000000000005', '01000000-0000-4000-8000-000000000001', null, 'LABOUR', 'QUOTED', 'A/C regas labour', 1.0, 55.00, 55.00, 1),
   ('02000000-0000-4000-8000-000000000006', '01000000-0000-4000-8000-000000000001', null, 'MATERIALS', 'QUOTED', 'Refrigerant and dye', 1, 45.00, 45.00, 2);
+
+-- Explicit invoice_number inserts do not advance invoice_number_seq (restarted
+-- to 1 above). Align the sequence so the next default is max+1.
+select setval(
+  'public.invoice_number_seq',
+  coalesce(
+    (
+      select max(substring(invoice_number from '([0-9]+)$')::bigint)
+      from public.invoices
+      where invoice_number ~ '[0-9]+$'
+    ),
+    1
+  ),
+  true
+);
 
 commit;
 

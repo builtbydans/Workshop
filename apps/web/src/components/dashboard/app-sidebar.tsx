@@ -2,7 +2,6 @@
 
 import * as React from "react";
 
-import { NavDocuments } from "@/components/dashboard/nav-documents";
 import { NavMain } from "@/components/dashboard/nav-main";
 import { NavSecondary } from "@/components/dashboard/nav-secondary";
 import { NavUser } from "@/components/dashboard/nav-user";
@@ -27,58 +26,60 @@ import {
   CommandIcon,
   PoundSterlingIcon,
   PersonStandingIcon,
+  BellIcon,
 } from "lucide-react";
 
 import Link from "next/link";
 import type { NavUserData } from "@/types/auth.types";
 
-const data = {
-  navMain: [
-    {
-      title: "Home",
-      url: "/dashboard",
-      icon: <LayoutDashboardIcon />,
-    },
-    {
-      title: "Customers",
-      url: "/customers",
-      icon: <UsersIcon />,
-    },
-    {
-      title: "Vehicles",
-      url: "/vehicles",
-      icon: <CarIcon />,
-    },
-    {
-      title: "Jobs",
-      url: "/jobs",
-      icon: <WrenchIcon />,
-    },
-    {
-      title: "Leads",
-      url: "/leads",
-      icon: <ClipboardListIcon />,
-    },
-    {
-      title: "Invoices",
-      url: "/invoices",
-      icon: <ReceiptIcon />,
-    },
-    {
-      title: "Quotes",
-      url: "/quotes",
-      icon: <PoundSterlingIcon />,
-    },
-    {
-      title: "Employees",
-      url: "/employees",
-      icon: <PersonStandingIcon />,
-    },
-  ],
-
-  navSecondary: [],
-  documents: [],
-};
+const baseNavMain = [
+  {
+    title: "Home",
+    url: "/dashboard",
+    icon: <LayoutDashboardIcon />,
+  },
+  {
+    title: "Alerts",
+    url: "/alerts",
+    icon: <BellIcon />,
+    managerOnly: true,
+  },
+  {
+    title: "Customers",
+    url: "/customers",
+    icon: <UsersIcon />,
+  },
+  {
+    title: "Vehicles",
+    url: "/vehicles",
+    icon: <CarIcon />,
+  },
+  {
+    title: "Jobs",
+    url: "/jobs",
+    icon: <WrenchIcon />,
+  },
+  {
+    title: "Leads",
+    url: "/leads",
+    icon: <ClipboardListIcon />,
+  },
+  {
+    title: "Invoices",
+    url: "/invoices",
+    icon: <ReceiptIcon />,
+  },
+  {
+    title: "Quotes",
+    url: "/quotes",
+    icon: <PoundSterlingIcon />,
+  },
+  {
+    title: "Employees",
+    url: "/employees",
+    icon: <PersonStandingIcon />,
+  },
+];
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   user: NavUserData | null;
@@ -88,6 +89,10 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const { open, setOpen, isMobile } = useSidebar();
   const expandedByHoverRef = React.useRef(false);
   const isUserMenuOpenRef = React.useRef(false);
+  const canViewAlerts = user?.role === "MANAGER" || user?.role === "ADMIN";
+  const navMain = baseNavMain.filter(
+    (item) => !item.managerOnly || canViewAlerts,
+  );
 
   const handleMouseEnter = React.useCallback(() => {
     if (isMobile || open) return;
@@ -97,7 +102,11 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
 
   const handleMouseLeave = React.useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
-      if (isMobile || !expandedByHoverRef.current || isUserMenuOpenRef.current) {
+      if (
+        isMobile ||
+        !expandedByHoverRef.current ||
+        isUserMenuOpenRef.current
+      ) {
         return;
       }
 
@@ -167,9 +176,8 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={navMain} />
+        <NavSecondary items={[]} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         {user ? (

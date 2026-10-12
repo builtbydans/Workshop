@@ -30,10 +30,13 @@ export interface DashboardRaiseDto {
   job_id: string;
   job_number: string;
   job_status: string;
+  status: RaiseStatus;
   created_at: string;
   updated_at: string;
+  acknowledged_at?: string | null;
   latest_note: string;
   raised_by: RaiseEmployeeDto;
+  notes: JobRaiseNoteDto[];
   vehicles: {
     registration: string;
     make: string;

@@ -10,7 +10,8 @@ export interface WorkshopDashboardDto {
   leads: number;
   invoices: number;
   jobsToday: number;
-  revenueToday: number;
+  revenueThisWeek: number;
+  weekNumber: number;
   vehiclesInWorkshop: number;
   readyForCollection: number;
   jobsByStatus: Record<JobStatus, number>;

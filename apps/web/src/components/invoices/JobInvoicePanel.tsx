@@ -29,6 +29,10 @@ const JobInvoicePanel = ({ job }: { job: JobSummaryDto }) => {
     job.status === JOB_STATUS.INVOICED ||
     job.status === JOB_STATUS.COMPLETED;
 
+  if (!canOpenInvoice) {
+    return null;
+  }
+
   const handleCreate = async () => {
     setCreating(true);
     setError(null);
@@ -100,9 +104,7 @@ const JobInvoicePanel = ({ job }: { job: JobSummaryDto }) => {
           </>
         ) : (
           <p className="text-sm text-muted-foreground">
-            {canOpenInvoice
-              ? "Add work items before creating the invoice."
-              : "Invoice creation opens after the job is marked ready for collection."}
+            Add work items before creating the invoice.
           </p>
         )}
 
