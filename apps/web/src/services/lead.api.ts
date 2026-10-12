@@ -44,6 +44,12 @@ export function createLeadService(apiFetch: ApiFetch) {
       method: "PATCH",
     });
 
+  const createCustomerQuoteLink = (id: string) =>
+    apiFetch<{ url: string; expires_at: string; job_number: string }>(
+      `/leads/${id}/quote-link`,
+      { method: "POST" },
+    );
+
   return {
     createLead,
     getLeads,
@@ -52,5 +58,6 @@ export function createLeadService(apiFetch: ApiFetch) {
     markLeadAsLost,
     acceptQuote,
     confirmDeposit,
+    createCustomerQuoteLink,
   };
 }

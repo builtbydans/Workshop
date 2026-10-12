@@ -11,6 +11,7 @@ import {
   markLeadAsLost,
   confirmDeposit,
 } from "@/services/lead.service";
+import { CopyCustomerQuoteLinkButton } from "@/components/leads/CopyCustomerQuoteLinkButton";
 import { formatRegistration } from "@/utils/formatRegistration";
 import { LeadSummaryDto } from "@/types/lead.types";
 
@@ -54,7 +55,13 @@ const CustomerQuoteCard = ({ job }: CustomerQuoteCardProps) => {
 
   return (
     <div>
-      <h1>This is the Customer View</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold">Staff quotation preview</h1>
+        <CopyCustomerQuoteLinkButton
+          enabled={job.status === "QUOTED" && job.quoted_cost != null}
+          leadId={job.id}
+        />
+      </div>
 
       <div className="mt-6 rounded-lg border p-6">
         <h1 className="text-3xl font-bold">
@@ -75,6 +82,14 @@ const CustomerQuoteCard = ({ job }: CustomerQuoteCardProps) => {
             <p>Quoted Cost: £{job.quoted_cost}</p>
 
             <p>Estimated Time To Complete: 2 Working Days</p>
+
+            <p className="text-sm text-muted-foreground">
+              Prefer the real customer experience? Use{" "}
+              <span className="font-medium text-foreground">
+                Copy customer quote link
+              </span>{" "}
+              above to open the Northside Motor Co. quotation page.
+            </p>
 
             {!reject && (
               <div className="flex gap-1.5">

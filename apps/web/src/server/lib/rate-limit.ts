@@ -12,6 +12,8 @@ type RateLimitOptions = {
   limit: number;
   /** Window length in milliseconds. */
   windowMs: number;
+  /** Optional override for the 429 message. */
+  message?: string;
 };
 
 const buckets = new Map<string, RateLimitBucket>();
@@ -53,7 +55,7 @@ export function assertRateLimit(
     );
 
     throw new AppError(
-      "Too many enquiries. Please try again shortly.",
+      options.message ?? "Too many requests. Please try again shortly.",
       429,
       ERROR_CODES.RATE_LIMITED,
       { retry_after: [`${retryAfterSeconds}`] },

@@ -165,6 +165,7 @@ const quoteLead = async (id: string, data: QuoteLeadDto) => {
 };
 
 const markLeadAsLost = async (id: string) => {
+  // Only transition from statuses that can legally move to LOST.
   const { data, error } = await supabase
     .from("jobs")
     .update({
@@ -172,8 +173,9 @@ const markLeadAsLost = async (id: string) => {
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
+    .in("status", [JOB_STATUS.LEAD, JOB_STATUS.QUOTED])
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
 
@@ -181,6 +183,7 @@ const markLeadAsLost = async (id: string) => {
 };
 
 const acceptQuote = async (id: string) => {
+  // Conditional update prevents concurrent accept/decline races.
   const { data, error } = await supabase
     .from("jobs")
     .update({
@@ -188,8 +191,9 @@ const acceptQuote = async (id: string) => {
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
+    .eq("status", JOB_STATUS.QUOTED)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
 

@@ -9,4 +9,5 @@ export const {
   markLeadAsLost,
   acceptQuote,
   confirmDeposit,
+  createCustomerQuoteLink,
 } = createLeadService(apiFetch);
