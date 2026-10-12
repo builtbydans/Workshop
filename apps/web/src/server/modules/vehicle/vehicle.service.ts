@@ -139,4 +139,21 @@ const deleteVehicleById = async (id: string) => {
   return deletedVehicle;
 };
 
-export { getVehicles, getVehiclesByCustomerId, createVehicle, updateVehicleById, deleteVehicleById };
+const findVehicleByRegistration = async (registration: string) => {
+  const normalised = registration?.trim().toUpperCase().replace(/\s+/g, "");
+
+  if (!normalised) {
+    return null;
+  }
+
+  return vehicleRepository.findVehicleByReg(normalised);
+};
+
+export {
+  getVehicles,
+  getVehiclesByCustomerId,
+  createVehicle,
+  findVehicleByRegistration,
+  updateVehicleById,
+  deleteVehicleById,
+};

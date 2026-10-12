@@ -36,6 +36,15 @@ const createLead = async (leadData: CreateLeadDto) => {
     message,
   } = leadData;
 
+  first_name = first_name?.trim();
+  last_name = last_name?.trim();
+  email = email?.trim().toLowerCase();
+  phone = phone?.trim();
+  registration = registration?.trim();
+  make = make?.trim();
+  model = model?.trim();
+  message = message?.trim();
+
   if (!first_name) {
     throw new AppError("First name is required", 400);
   }
@@ -73,19 +82,41 @@ const createLead = async (leadData: CreateLeadDto) => {
     throw new AppError("Message is required", 400);
   }
 
-  const customer = await customerService.createCustomer({
-    first_name,
-    last_name,
-    email,
-    phone,
-  });
+  // Reuse an existing customer when the email already matches.
+  // Creating a duplicate would violate the established uniqueness rule.
+  let customer = await customerService.findCustomerByEmail(email);
 
-  const vehicle = await vehicleService.createVehicle({
-    customer_id: customer.id,
-    registration,
-    make,
-    model,
-  });
+  if (!customer) {
+    customer = await customerService.createCustomer({
+      first_name,
+      last_name,
+      email,
+      phone,
+    });
+  }
+
+  // Reuse a vehicle when the registration belongs to this customer.
+  // A registration owned by someone else remains a conflict.
+  const existingVehicle =
+    await vehicleService.findVehicleByRegistration(registration);
+
+  let vehicle = existingVehicle;
+
+  if (existingVehicle) {
+    if (existingVehicle.customer_id !== customer.id) {
+      throw new AppError(
+        "Vehicle already registered to another customer",
+        400,
+      );
+    }
+  } else {
+    vehicle = await vehicleService.createVehicle({
+      customer_id: customer.id,
+      registration,
+      make,
+      model,
+    });
+  }
 
   const lead = await jobService.createJob({
     vehicle_id: vehicle.id,
