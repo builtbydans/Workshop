@@ -2,9 +2,10 @@
 
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
+import { ExternalLink, MoonIcon, SunIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { MoonIcon, SunIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { NavUserData } from "@/types/auth.types";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 
@@ -33,7 +34,24 @@ export function SiteHeader({ user }: { user: NavUserData | null }) {
         />
 
         <h1 className="text-base font-medium">{getPageTitle(pathname)}</h1>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-1 sm:gap-2">
+          <Button asChild size="sm" variant="outline" className="hidden sm:inline-flex">
+            <a href="/demo/garage" rel="noopener noreferrer" target="_blank">
+              Simulate Enquiry
+              <ExternalLink data-icon="inline-end" />
+            </a>
+          </Button>
+          <Button
+            asChild
+            size="icon-sm"
+            variant="outline"
+            className="sm:hidden"
+            aria-label="Simulate Enquiry"
+          >
+            <a href="/demo/garage" rel="noopener noreferrer" target="_blank">
+              <ExternalLink />
+            </a>
+          </Button>
           <button
             type="button"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -43,8 +61,8 @@ export function SiteHeader({ user }: { user: NavUserData | null }) {
 
             <MoonIcon className="absolute size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           </button>
+          <LogoutButton />
         </div>
-        <LogoutButton />
       </div>
     </header>
   );

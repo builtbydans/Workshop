@@ -146,4 +146,21 @@ const deleteCustomerById = async (id: string) => {
   return deletedCustomer;
 };
 
-export { createCustomer, getCustomers, getCustomerById, updateCustomerById, deleteCustomerById };
+const findCustomerByEmail = async (email: string) => {
+  const normalised = email?.trim().toLowerCase();
+
+  if (!normalised) {
+    return null;
+  }
+
+  return customerRepository.findCustomerByEmail(normalised);
+};
+
+export {
+  createCustomer,
+  getCustomers,
+  getCustomerById,
+  findCustomerByEmail,
+  updateCustomerById,
+  deleteCustomerById,
+};

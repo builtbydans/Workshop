@@ -19,6 +19,11 @@ function isPublicPath(pathname: string) {
     return true;
   }
 
+  // Fictional garage website used to demo public lead capture
+  if (pathname === "/demo/garage" || pathname.startsWith("/demo/garage/")) {
+    return true;
+  }
+
   return false;
 }
 
